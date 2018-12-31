@@ -1,1 +1,8 @@
+v 3
+d regsave. Extract and store regression results.
+d Julian Reif, University of Illinois (jreif@illinois.edu)
 
+f /src/regsave.ado
+f /src/regsave.hlp
+f /src/regsave_tbl.ado
+f /src/regsave_tbl.hlp
