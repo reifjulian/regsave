@@ -12,7 +12,7 @@
 
 ## Install:
 
-Type `which regsave` at the Stata prompt to find out which version you have installed. To install the latest (developer's) version of regsave, copy/paste the following line of code:
+Type `which regsave` at the Stata prompt to find out which version you have installed. To install the latest (developer's) version of `regsave`, copy/paste the following line of code:
 
 ```
 net install regsave, from("https://raw.githubusercontent.com/reifjulian/regsave/master") replace
@@ -25,11 +25,11 @@ ssc install regsave, replace
 
 ## Description: 
 
-`regsave` fetches estimation results from e() and stores them in "wide" format (default) or "table" format:
+`regsave` fetches estimation results from **e()** and stores them in "wide" format (default) or "table" format:
 
 - By default, results are stored in wide format. Use this format when you want to further analyze your regression results using Stata.
 
-- If you specify the table() option, results are stored in table format.  You can then outsheet those results to a text file, or use texsave (if installed) to output your table in LaTeX format (see example 6 below). Use the table() option when you want to create a publication-quality table.
+- If you specify the `table()` option, results are stored in table format.  You can then outsheet those results to a text file, or use texsave (if installed) to output your table in LaTeX format (see example 6 below). Use the `table()` option when you want to create a publication-quality table.
 
 The helper command `regsave_tbl` converts the dataset in memory from wide format to table format.
 
