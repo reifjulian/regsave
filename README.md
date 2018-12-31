@@ -25,7 +25,7 @@ ssc install regsave, replace
 
 ## Description: 
 
-`regsave` fetches estimation results from **e()** and stores them in "wide" format (default) or "table" format:
+`regsave` fetches estimation results from `e()` and stores them in "wide" format (default) or "table" format:
 
 - By default, results are stored in wide format. Use this format when you want to further analyze your regression results using Stata.
 
