@@ -1,7 +1,7 @@
 # REGSAVE: Extract and Store Regression Results
 
 - Current version: `1.4.4 16may2018`
-- Jump to: [`updates`](#recent-updates) [`install`](#install) [`description`](#description)
+- Jump to: [`updates`](#recent-updates) [`install`](#install) [`description`](#description) [`author`](#author)
 
 -----------
 
@@ -12,16 +12,18 @@
 
 ## Install:
 
-Type `which regsave` at the Stata prompt to find out which version you have installed. To install the latest (developer's) version of `regsave`, copy/paste the following line of code:
+Type `which regsave` at the Stata prompt to determine which version you have installed. To install the most recent version of `regsave`, copy/paste the following line of code:
 
 ```
 net install regsave, from("https://raw.githubusercontent.com/reifjulian/regsave/master") replace
 ```
 
-To install the most recent version that was uploaded to SSC, copy/paste the following line of code:
+To install the version that was uploaded to SSC, copy/paste the following line of code:
 ```
 ssc install regsave, replace
 ```
+
+These two versions are typically synced, but occasionally the SSC version will be slightly out of date.
 
 ## Description: 
 
@@ -32,6 +34,8 @@ ssc install regsave, replace
 - If you specify the `table()` option, results are stored in table format.  You can then outsheet those results to a text file, or use texsave (if installed) to output your table in LaTeX format (see example 6 below). Use the `table()` option when you want to create a publication-quality table.
 
 The helper command `regsave_tbl` converts the dataset in memory from wide format to table format.
+
+See the Stata help file for more details.
 
 ## Author:
 
