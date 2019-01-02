@@ -24,11 +24,11 @@ To install the version that was uploaded to SSC, copy/paste the following line o
 ssc install regsave, replace
 ```
 
-These two versions are typically synced, but occasionally the SSC version will be slightly out of date.
+These two versions are typically synced, but occasionally the SSC version may be slightly out of date.
 
 ## Description: 
 
-`regsave` fetches estimation results from `e()` and stores them in "wide" format (default) or "table" format:
+`regsave` is a [Stata](http://www.stata.com) command that fetches estimation results from `e()` and stores them in "wide" format (default) or "table" format:
 
 - By default, results are stored in wide format. Use this format when you want to further analyze your regression results using Stata.
 
@@ -36,7 +36,7 @@ These two versions are typically synced, but occasionally the SSC version will b
 
 The helper command `regsave_tbl` converts the dataset in memory from wide format to table format.
 
-See the Stata help file for more details.
+For more details, see the Stata help file included in this package.
 
 ## Author:
 
