@@ -9,6 +9,7 @@
 
 * **December 31, 2018**
   - Added the help file `regsave_tbl.hlp` to installation package
+  - Added error catching code to `regsave_tbl.ado`
 
 ## Install:
 
