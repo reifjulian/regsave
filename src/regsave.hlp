@@ -28,7 +28,7 @@ help {hi:regsave}
 
 {title:Description}
 
-{p 4 4 2}{cmd:regsave} fetches estimation results from {cmd:e()} and stores them in "wide"" format (default) or "table" format:
+{p 4 4 2}{cmd:regsave} fetches estimation results from {cmd:e()} and stores them in "wide" format (default) or "table" format:
 
 {p 8 14 2}1. By default, results are stored in wide format. Use this format when you want to further analyze your regression results using Stata.
 
@@ -132,7 +132,7 @@ Specifying {cmd:asterisk()} sets a default, which places a */**/*** next to coef
 
 
 {p 4 8 2}
-{cmd:append} appends the regression results to the Stata-formatted dataset {it:filename}.
+{cmd:append} appends the regression results to the Stata dataset {it:filename}.
 
 
 {p 4 8 2}
