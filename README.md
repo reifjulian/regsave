@@ -5,7 +5,7 @@
 
 -----------
 
-## Recent Updates:
+## Updates:
 
 * **December 31, 2018**
   - Added the help file `regsave_tbl.hlp` to installation package
