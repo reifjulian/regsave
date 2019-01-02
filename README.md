@@ -1,4 +1,4 @@
-# REGSAVE: Extract and Store Regression Results
+# REGSAVE: extract and store regression results
 
 - Current version: `1.4.4 16may2018`
 - Jump to: [`updates`](#recent-updates) [`install`](#install) [`description`](#description) [`author`](#author)
