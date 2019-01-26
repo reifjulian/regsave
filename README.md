@@ -1,11 +1,14 @@
 # REGSAVE: extract and store regression results
 
-- Current version: `1.4.4 16may2018`
+- Current version: `1.4.5 26jan2019`
 - Jump to: [`updates`](#recent-updates) [`install`](#install) [`description`](#description) [`author`](#author)
 
 -----------
 
 ## Updates:
+
+* **January 26, 2019**
+  - Added `sigfig()` option
 
 * **December 31, 2018**
   - Added the help file `regsave_tbl.hlp` to installation package
