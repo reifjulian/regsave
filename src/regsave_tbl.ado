@@ -1,4 +1,5 @@
-*! regsave_tbl 1.1.3 30dec2018 by Julian Reif
+*! regsave_tbl 1.1.4 26jan2019 by Julian Reif
+* 1.1.4: added sigfig() option. Edited df() option to allow missing.
 * 1.1.3: added error checking for case where user calls regsave_tbl directly
 * 1.1.2: added saveold option
 * 1.1.1: autoid is now passed on through command arguments rather than detected directly
@@ -17,8 +18,8 @@
 program define regsave_tbl, rclass
 	version 8.2
 
-	syntax [varlist] [using/] [if] [in], name(name) [order(string) format(string) PARENtheses(namelist max=6) BRACKets(namelist max=6) allnumeric ASTERisk(numlist descending integer min=0 max=3 >=0 <=100) df(string) autoid append replace saveold(integer -999)]
-		
+	syntax [varlist] [using/] [if] [in], name(name) [order(string) format(string) sigfig(numlist integer min=1 max=1 >=1 <=20) PARENtheses(namelist max=6) BRACKets(namelist max=6) allnumeric ASTERisk(numlist descending integer min=0 max=3 >=0 <=100) df(numlist min=1 max=1 >0 missingokay) autoid append replace saveold(numlist integer min=1 max=1 >=11)]
+
 	**********************************
 	* Error check option selections  *
 	**********************************
@@ -63,13 +64,23 @@ program define regsave_tbl, rclass
 	* Saveold options, if specified
 	local save save
 	local saveold_opts ""
-	if "`saveold'"!="-999" {
+	if "`saveold'"!="" {
 		local save "saveold"
 		local saveold_opts "version(`saveold')"
 		
 		* Reuse in regsave_tbl subcommand:
 		local sv_old "saveold(`saveold')"
 	}
+	
+	* sigfig option
+	if "`sigfig'"!=""   {
+		if "`format'"!="" {
+			di as error "Cannot specify both the sigfig and format options."
+			exit 198					
+		}
+		local format "%12.`sigfig'gc"
+	}
+	
 	
 	preserve
 	
@@ -144,7 +155,8 @@ program define regsave_tbl, rclass
 
 	* Asterisk option: *-**-*** for 10% / 5% / 1% significance is the default
 	if "`asterisk'"!="" {
-		qui gen coef2 = coef // used only in one case below
+		tempvar coef2
+		qui gen `coef2' = coef // used only in one case below
 		qui tostring coef, replace force format(`format')
 		local allnumeric // allnumeric must be blank with asterisks
 		
@@ -181,7 +193,7 @@ program define regsave_tbl, rclass
 			else {
 				cap d stderr
 				if _rc==0 {
-					qui gen `double' tstat = coef2/stderr 
+					qui gen `double' tstat = `coef2'/stderr 
 					if "`df'"=="." {
 						qui gen `double' pval = 2*(1-normprob(abs(tstat)))
 					}
@@ -195,7 +207,7 @@ program define regsave_tbl, rclass
 				}	
 			}
 		}
-		drop coef2
+		drop `coef2'
 		qui tostring *, replace force format(`format') // All variables need to be string now, in preparation for the reshape
 	}
 	
@@ -312,7 +324,6 @@ program define regsave_tbl, rclass
 		qui cap tostring `float_vars', force replace format(`format')
 		if "`format'"!="" local format "%15.0fc"
 		qui tostring *, force replace format(`format')
-		
 	}
 
 	* Put into one column
@@ -327,12 +338,51 @@ program define regsave_tbl, rclass
 
 	keep var `table'
 	order var
+	
+	* Add trailing and leading zeros, if sigfig option was specified
+	qui if "`sigfig'"!="" {
+		
+		cap confirm string var `table'
+		if !_rc {
+			tempvar tmp diff tail numast
+			
+			gen     `tmp' = subinstr(`table',".","",1)
+			replace `tmp' = subinstr(`tmp',".","",1)
+			replace `tmp' = subinstr(`tmp',"(","",1)
+			replace `tmp' = subinstr(`tmp',")","",1)
+			replace `tmp' = subinstr(`tmp',"[","",1)
+			replace `tmp' = subinstr(`tmp',"]","",1)
+			replace `tmp' = subinstr(`tmp',"*","",.)
+			replace `tmp' = subinstr(`tmp',"-","",.)
+			
+			gen `diff' = `sigfig' - length(`tmp')
+			gen `tail' = "0"*`diff'
+			gen `numast' = length(`table') - length(subinstr(`table', "*", "", .))
+
+			* Leading zero's
+			replace `table' = "0"  + `table' if substr(`table',1,1)=="."
+			replace `table' = subinstr(`table',"-.","-0.",1)   if substr(`table',1,2)=="-."
+			replace `table' = subinstr(`table',"(.","(0.",1)   if substr(`table',1,2)=="(."
+			replace `table' = subinstr(`table',"[.","[0.",1)   if substr(`table',1,2)=="[."
+			replace `table' = subinstr(`table',"(-.","(-0.",1) if substr(`table',1,3)=="(-."
+			replace `table' = subinstr(`table',"[-.","[-0.",1) if substr(`table',1,3)=="[-."
+
+			* Trailing zero's (note: asterisks can't occur with ")" or "]", because those are only for std errors)
+			replace `table' = `table'+`tail'                                                     if strpos(`table',".")!=0 & strpos(`table',"*")==0 & substr(`table',1,1)!="(" & substr(`table',1,1)!="["
+			replace `table' = substr(`table',1,length(`table')-`numast') + `tail' + "*"*`numast' if strpos(`table',".")!=0 & strpos(`table',"*")!=0 & substr(`table',1,1)!="(" & substr(`table',1,1)!="["
+			
+			replace `table' = subinstr(`table',")",`tail'+")",1) if strpos(`table',".")!=0 & substr(`table',1,1)=="("
+			replace `table' = subinstr(`table',"]",`tail'+")",1) if strpos(`table',".")!=0 & substr(`table',1,1)=="["
+			
+			drop `tmp' `diff' `tail' `numast'
+		}
+	}	
 
 	* Merge with dataset if specified
 	if "`append'"!= "" {
 
 		* Take care that the sorting is not messed up by the merge (and add extra joinby option for Version 8 of Stata)
-		tempname sortid
+		tempvar sortid
 		gen `sortid' = _n
 		cap qui merge var using `"`using'"', sort
 		if _rc !=0 {
@@ -400,8 +450,8 @@ program define regsave_tbl, rclass
 		}		
 		sort index, stable
 		drop index
-	}	
-
+	}
+	
 	* Restore dataset if necessary
 	if "`using'"!= "" {
 		`save' "`using'", `replace' `saveold_opts'

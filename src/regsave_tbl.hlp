@@ -7,7 +7,7 @@ help {hi:regsave_tbl}
 
 {title:Syntax}
 
-{p 8 14 2}{cmd:regsave_tbl} [if] [in], {cmd:name(}{it:name}{cmd:)} [{cmd:order(}{it:string}{cmd:)} {cmd:format(}{it:%}{help fmt}{cmd:)} 
+{p 8 14 2}{cmd:regsave_tbl} [if] [in], {cmd:name(}{it:name}{cmd:)} [{cmd:order(}{it:string}{cmd:)} {cmd:format(}{it:%}{help fmt}{cmd:)} {cmd:sigfig(}{it:#}{cmd:)} 
 {cmdab:paren:theses(}{it:statlist}{cmd:)} {cmdab:brack:ets(}{it:statlist}{cmd:)} {cmdab:aster:isk}{cmd:(}{help numlist}{cmd:)}]
 
 

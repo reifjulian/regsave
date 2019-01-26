@@ -1,4 +1,5 @@
-*! regsave 1.4.4 16may2018 by Julian Reif
+*! regsave 1.4.5 26jan2019 by Julian Reif
+* 1.4.5: added sigfig() option. Edited df() option to allow missing.
 * 1.4.4: fixed bug when saving a table to a folder names with space
 * 1.4.3: fixed bug with blank addlabels
 * 1.4.2: added saveold option
@@ -30,7 +31,7 @@
 
 program define regsave, rclass
 	version 8.2
-	syntax [anything] [using/] [, Tstat Pval ci Level(real $S_level) noSE CMDline autoid covar(string) detail(name min=1) double ADDLABel(string asis) addvar(string) table(string) coefmat(string) varmat(string) df(real -999) append replace saveold(integer -999)]
+	syntax [anything] [using/] [, Tstat Pval ci Level(real $S_level) noSE CMDline autoid covar(string) detail(name min=1) double ADDLABel(string asis) addvar(string) table(string) coefmat(string) varmat(string) df(numlist min=1 max=1 >0 missingokay) append replace saveold(numlist integer min=1 max=1 >=11)]
 				
 	* Hold onto using filename in case it gets reset by further syntax commands
 	local hold_using `"`using'"'
@@ -55,7 +56,7 @@ program define regsave, rclass
 	* Saveold options, if specified
 	local save save
 	local saveold_opts ""
-	if "`saveold'"!="-999" {
+	if "`saveold'"!="" {
 		local save "saveold"
 		local saveold_opts "version(`saveold')"
 		
@@ -72,7 +73,7 @@ program define regsave, rclass
 						
 		local 0 `"`table'"'
 		local tbl_command `"`0'"'
-		syntax namelist(max=1) [, order(string) format(string) PARENtheses(namelist max=4) BRACKets(namelist max=4) *]
+		syntax namelist(max=1) [, order(string) format(string) sigfig(numlist integer min=1 max=1 >=1 <=20) PARENtheses(namelist max=4) BRACKets(namelist max=4) *]
 		local table `"`namelist'"'
 		
 		local 0 `", `options'"'
@@ -87,7 +88,7 @@ program define regsave, rclass
 		if "`asterisk'"!="" & "`pval'`tstat'"=="" & "`se'"!="" {
 			di as error "Asterisk option requires presence of standard errors, pvals, or tstats"
 			exit 198					
-		}		
+		}
 	}
 	
 	local using `"`hold_using'"'
@@ -122,10 +123,10 @@ program define regsave, rclass
 	if `"`e(cmd)'"'=="mi estimate" & "`varmat'"=="" local varmat "e(V_mi)"
 	
 	
-	* coefmat and varmat defaults are e(b) and e(V)
+	* coefmat, varmat, and df defaults are e(b), e(V), and e(df_r)
 	if "`coefmat'"=="" local coefmat "e(b)"
 	if "`varmat'"=="" local varmat "e(V)"
-	if `df' <= 0 local df = e(df_r)
+	if "`df'"=="" local df = e(df_r)
 	confirm matrix `coefmat'
 	confirm matrix `varmat'
 	
@@ -140,6 +141,12 @@ program define regsave, rclass
 			di as err "format() option invalid"
 			exit 198
 		}
+	}
+	
+	* sigfig not allowed with format option
+	if "`sigfig'"!="" & "`format'"!=""  {
+		di as error "Cannot specify both the sigfig and format options."
+		exit 198					
 	}	
 	
 	* Parentheses and bracket options
@@ -299,7 +306,7 @@ program define regsave, rclass
 	qui gen `double' tstat = coef/stderr
 	if `level'<0 local cilevel = `c(level)'
 	else local cilevel = `level'
-	
+
 	if "`pval'`ci'"!="" {
 		if "`df'"=="." {
 			qui gen `double' pval = 2*(1-normprob(abs(tstat)))
@@ -416,11 +423,11 @@ program define regsave, rclass
 				
 		* Grab passthru values (asterisk option was handled separately up above)
 		local 0 `"`tbl_command'"'
-		syntax namelist(max=1) [, order(passthru) format(passthru) PARENtheses(passthru) BRACKets(passthru) *]
+		syntax namelist(max=1) [, order(passthru) format(passthru) sigfig(passthru) PARENtheses(passthru) BRACKets(passthru) *]
 		if `"`hold_using'"'!= "" local using `"using "`hold_using'""'
 		
 		* Create table		
-		regsave_tbl `using', name("`table'") `order' `format' `parentheses' `brackets' `asterisk' `allnumeric' `append' `replace' df(`df') `autoid' `sv_old'
+		regsave_tbl `using', name("`table'") `order' `format' `sigfig' `parentheses' `brackets' `asterisk' `allnumeric' `append' `replace' df(`df') `autoid' `sv_old'
 		
 		* Restore using val (it is reset by the syntax command above)
 		local using `"`hold_using'"'		
