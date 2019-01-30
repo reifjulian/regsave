@@ -1,4 +1,5 @@
-*! regsave 1.4.5 26jan2019 by Julian Reif
+*! regsave 1.4.6 30jan2019 by Julian Reif
+* 1.4.6: N stored as double/long for large datasets.
 * 1.4.5: added sigfig() option. Edited df() option to allow missing.
 * 1.4.4: fixed bug when saving a table to a folder names with space
 * 1.4.3: fixed bug with blank addlabels
@@ -333,8 +334,8 @@ program define regsave, rclass
 	**********************************
 
 
-	* N, R^2, and regression command
-	if e(N)!=. qui gen N = e(N)
+	* N, R^2, and regression command. Always store N as a double, to avoid rounding issues with big data
+	if e(N)!=. qui gen double N = e(N)
 	if e(r2)!=. qui gen `double' r2 = e(r2)
 	if `"`e(cmdline)'"'!="" & "`cmdline'"!="" {
 		qui gen cmdline = `"`e(cmdline)'"'
