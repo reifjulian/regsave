@@ -1,4 +1,5 @@
-*! regsave_tbl 1.1.4 26jan2019 by Julian Reif
+*! regsave_tbl 1.1.5 31may2019 by Julian Reif
+* 1.1.5: fixed bug with sigfig() option and brackets
 * 1.1.4: added sigfig() option. Edited df() option to allow missing.
 * 1.1.3: added error checking for case where user calls regsave_tbl directly
 * 1.1.2: added saveold option
@@ -367,12 +368,12 @@ program define regsave_tbl, rclass
 			replace `table' = subinstr(`table',"(-.","(-0.",1) if substr(`table',1,3)=="(-."
 			replace `table' = subinstr(`table',"[-.","[-0.",1) if substr(`table',1,3)=="[-."
 
-			* Trailing zero's (note: asterisks can't occur with ")" or "]", because those are only for std errors)
+			* Trailing zero's (note: asterisks can't occur with ")" or "]", because those are only for stderrs/tstats/ci)
 			replace `table' = `table'+`tail'                                                     if strpos(`table',".")!=0 & strpos(`table',"*")==0 & substr(`table',1,1)!="(" & substr(`table',1,1)!="["
 			replace `table' = substr(`table',1,length(`table')-`numast') + `tail' + "*"*`numast' if strpos(`table',".")!=0 & strpos(`table',"*")!=0 & substr(`table',1,1)!="(" & substr(`table',1,1)!="["
 			
 			replace `table' = subinstr(`table',")",`tail'+")",1) if strpos(`table',".")!=0 & substr(`table',1,1)=="("
-			replace `table' = subinstr(`table',"]",`tail'+")",1) if strpos(`table',".")!=0 & substr(`table',1,1)=="["
+			replace `table' = subinstr(`table',"]",`tail'+"]",1) if strpos(`table',".")!=0 & substr(`table',1,1)=="["
 			
 			drop `tmp' `diff' `tail' `numast'
 		}

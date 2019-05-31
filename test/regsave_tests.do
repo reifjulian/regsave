@@ -355,6 +355,7 @@ assert _rc==125
 cap regsave mpg trunk, table(OLS, sigfig(2 2) asterisk())
 assert _rc==123
 
+
 * Confirm that N's larger than float size (eg N=16777217) are stored properly as double/long
 set seed 10
 clear
