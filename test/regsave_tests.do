@@ -7,7 +7,6 @@ tempfile t
 version 11
 program drop _all
 
-
 * 1. Store regression results in the active dataset:
 
  sysuse auto.dta, clear
@@ -402,6 +401,23 @@ regsave
 tostring coef, force replace
 cap regsave_tbl, name(t)
 assert _rc==198
+
+* Ensure that large scalars and macros outside the normal integer/string storage range are saved correctly
+program define big_returns, eclass
+	regress price mpg trunk headroom length
+	matrix b = e(b)
+	matrix V = e(V)
+	ereturn clear
+	ereturn post b V
+	ereturn scalar big_scalar=100000
+	local big_macro = "t"*30000
+	ereturn local big_macro = "`big_macro'"
+end
+sysuse auto.dta, clear
+big_returns
+regsave, detail(all)
+cf _all using "compare/bigreturns.dta"
+
 
 ** EOF
 

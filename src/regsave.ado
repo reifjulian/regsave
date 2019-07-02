@@ -1,4 +1,5 @@
-*! regsave 1.4.6 30jan2019 by Julian Reif
+*! regsave 1.4.7 2jul2019 by Julian Reif
+* 1.4.7: fixed bug that caused large scalars outside the normal integer range to be stored as missing, when using the detail() option.
 * 1.4.6: N stored as double/long for large datasets.
 * 1.4.5: added sigfig() option. Edited df() option to allow missing.
 * 1.4.4: fixed bug when saving a table to a folder names with space
@@ -339,8 +340,6 @@ program define regsave, rclass
 	if e(r2)!=. qui gen `double' r2 = e(r2)
 	if `"`e(cmdline)'"'!="" & "`cmdline'"!="" {
 		qui gen cmdline = `"`e(cmdline)'"'
-		* Issue warning if macro gets truncated
-		if length(`"`e(cmdline)'"')>244 di in yellow "Macro e(cmdline) truncated to 244 characters"		
 	}
 	
 	* Detailed statistics
@@ -351,7 +350,7 @@ program define regsave, rclass
 			local scalar_vars : e(scalars)
 			foreach v of local scalar_vars {
 				capture confirm integer number `e(`v')'
-				if _rc==0 qui cap gen int `v' = e(`v')
+				if _rc==0 & inrange(`e(`v')', -32767, 32740) qui cap gen int `v' = e(`v')
 				else qui cap gen `double' `v' = e(`v')
 			}
 		}
@@ -360,9 +359,7 @@ program define regsave, rclass
 		if "`detail'"=="all" | "`detail'"=="macros" {
 			local macro_vars : e(macros)
 			foreach v of local macro_vars {
-				qui cap gen `v' = `"`e(`v')'"'				
-				* Issue warning if macro gets truncated
-				if length(`"`e(`v')'"')>244 di in yellow "Macro e(`v') truncated to 244 characters"
+				qui cap gen `v' = `"`e(`v')'"'
 			}
 		}
 	}
