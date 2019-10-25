@@ -1,5 +1,5 @@
-* This script runs a series of tests on the -regsave- package to help prevent inadvertent bugs.
-* Author: Julian Reif
+cscript regsave adofile regsave
+
 clear
 adopath ++"../src"
 set more off
@@ -134,6 +134,7 @@ cf _all using "compare/asterisk.dta"
 sysuse auto.dta, clear
 regress price mpg trunk headroom length, level(80)
 regsave mpg trunk, ci level(80) table(OLS, order(regvars r2) format(%5.3f) brackets(stderr))
+cf _all using "compare/ci.dta"
 
 * Factor variables
 sysuse auto.dta, clear
@@ -254,7 +255,7 @@ regsave using `t', tstat pval addlabel(F, `f') table(reg2) append
 use "`t'", clear
 cf _all using "compare/label_example2.dta"
 
-* Problems when appending empty labels - currently there is no fix for this :(
+* Problems when appending empty labels - currently there is no fix for this
 sysuse auto, clear
 regress price mpg weight
 regsave using "`t'", addlabel(label1, "reg1",observations,`e(N)') replace
@@ -417,6 +418,52 @@ sysuse auto.dta, clear
 big_returns
 regsave, detail(all)
 cf _all using "compare/bigreturns.dta"
+
+
+***
+* rtable tests
+***
+* Source: use "https://stats.idre.ucla.edu/stat/stata/notes/lahigh", clear
+use "compare/lahigh.dta", clear
+
+poisson daysabs mathnce langnce, irr
+
+regsave, pval tstat ci rtable
+cf _all using "compare/rtable1.dta"
+
+regsave, pval tstat ci
+cf _all using "compare/rtable2.dta"
+
+use "compare/lahigh.dta", clear
+poisson daysabs mathnce langnce, irr
+cap regsave, pval tstat ci rtable covar(langnce mathnce)
+assert _rc==198
+cap regsave, pval tstat ci rtable coefmat(e(b))
+assert _rc==198
+
+* other examples that didn't use the rtable option should also work here with the table option
+sysuse auto.dta, clear
+regress price mpg trunk headroom length, level(80)
+regsave mpg trunk, ci level(80) table(OLS, order(regvars r2) format(%5.3f) brackets(stderr)) rtable
+cf _all using "compare/ci.dta"
+
+sysuse auto.dta, clear
+regress price mpg foreign##c.trunk
+regsave, rtable
+replace stderr=0 if mi(stderr)
+cf _all using "compare/fv1.dta"
+sysuse auto.dta, clear
+regress price mpg foreign##c.trunk
+regsave 0b.foreign 1.foreign 1.foreign#c.trunk, table(test) rtable
+replace test = 0 if mi(test)
+cf _all using "compare/fv2.dta"
+
+sysuse auto.dta, clear
+regress price mpg trunk headroom length
+local mycoef = _b[mpg]*5
+local mystderr = _se[mpg]*5
+regsave, addvar(mpg_5, `mycoef', `mystderr') rtable
+cf _all using "compare/examp5.dta"
 
 
 ** EOF

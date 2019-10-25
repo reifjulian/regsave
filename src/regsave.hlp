@@ -9,8 +9,8 @@ help {hi:regsave}
 
 {p 8 14 2}{cmd:regsave} [{it:coeflist}] [{cmd:using} {it:filename}] [, {cmdab:t:stat} {cmdab:p:val} {cmd:ci} {cmdab:l:evel(}#{cmd:)} {cmd:nose} {cmdab:cmd:line} 
 {cmd:autoid} {cmd:covar(}{it:coeflist}{cmd:)} 
-{cmd:detail(}{it:type}{cmd:)} {cmd:coefmat(}{it:matname}{cmd:)} {cmd:varmat(}{it:matname}{cmd:)} {cmd:df(}{it:#}{cmd:)} {cmd:double}
-{cmdab:addlab:el(}{it:newvarname1, label1, newvarname2, label2, ...}{cmd:)} 
+{cmd:detail(}{it:type}{cmd:)} {cmd:coefmat(}{it:matname}{cmd:)} {cmd:varmat(}{it:matname}{cmd:)} {cmd:rtable}
+{cmd:df(}{it:#}{cmd:)} {cmd:double} {cmdab:addlab:el(}{it:newvarname1, label1, newvarname2, label2, ...}{cmd:)} 
 {cmd:addvar(}{it:name1, coef1, stderr1, name2, coef2, stderr2, ...}{cmd:)} {cmd:table(}{it:table_suboptions}{cmd:)} {cmd:saveold(}{it:version #}{cmd:)} {cmd:append} {cmd:replace}]
 
 {p 4 4 2}where
@@ -90,6 +90,11 @@ a subset of those results: either {it:scalars} or {it:macros}.
 
 
 {p 4 8 2}
+{cmd:rtable} instructs {cmd:regsave} to fetch estimation results from {cmd:r(table)} rather than {cmd:e()}. This is helpful when an estimation command reports results that differ from what is stored in {cmd:e()}. 
+See the notes section below (and also example 7) for more information.
+
+
+{p 4 8 2}
 {cmd:df(}{it:#}{cmd:)} instructs Stata to calculate p-values and confidence intervals using # as the degrees of freedom instead of what is stored in {cmd:e(df_r)}. 
 {it:#} can be specified as missing ('.') or as any real number greater than 0.
 If {it:#} is set to missing, {cmd:regsave} assumes normality.
@@ -151,6 +156,9 @@ By default, Stata retrieves coefficient and variance estimates from {cmd:e(b)} a
 In that case, {cmd:regsave} retrieves the estimates from {cmd:e(dfdx)} and {cmd:e(se_dfdx)}.
 Use options {cmd:coefmat(}{it:matname}{cmd:)} and {cmd:varmat(}{it:matname}{cmd:)} if you want to retrieve estimates from matrices that differ from these defaults.
 Note that {cmd:regsave} will take the square root of {cmd:varmat(}{it:matname}{cmd:)} unless the string "se" is detected in {it:matname} (in which case it assumes that standard errors, not variances, are reported).
+
+{p 4 4 2}
+Alternatively, specify the {cmd:rtable} option to make {cmd:regsave} fetch results from {cmd:r(table)}. This is useful for commands which report output that differs from what is stored in {cmd:e()} (e.g., example 7).
 
 
 {title:List of retrieved items}
@@ -271,6 +279,17 @@ Note that {cmd:regsave} will take the square root of {cmd:varmat(}{it:matname}{c
 {col 8}{cmd:. {stata replace var = "R-squared" if var == "r2"}}
 
 {col 8}{cmd:. {stata texsave using "table.tex", title("My estimates") footnote("A */** next to the coefficient indicates significance at the 10/5% level.") nonames autonumber hlines(-2) replace}}
+
+
+{p 4 4 2}7. Save incidence-rate ratios, which are not stored in {cmd:e(b)}:
+
+{col 8}{cmd:. {stata webuse airline, clear}}
+
+{col 8}{cmd:. {stata poisson injuries XYZowned, exposure(n) irr}}
+
+{col 8}{cmd:. {stata regsave, t pval ci rtable}}
+
+{col 8}{cmd:. {stata list}}
 
 
 {title:Author}

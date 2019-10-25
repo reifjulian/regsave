@@ -1,4 +1,5 @@
-*! regsave 1.4.7 2jul2019 by Julian Reif
+*! regsave 1.4.8 25oct2019 by Julian Reif
+* 1.4.8: added rtable option.
 * 1.4.7: fixed bug that caused large scalars outside the normal integer range to be stored as missing, when using the detail() option.
 * 1.4.6: N stored as double/long for large datasets.
 * 1.4.5: added sigfig() option. Edited df() option to allow missing.
@@ -33,7 +34,7 @@
 
 program define regsave, rclass
 	version 8.2
-	syntax [anything] [using/] [, Tstat Pval ci Level(real $S_level) noSE CMDline autoid covar(string) detail(name min=1) double ADDLABel(string asis) addvar(string) table(string) coefmat(string) varmat(string) df(numlist min=1 max=1 >0 missingokay) append replace saveold(numlist integer min=1 max=1 >=11)]
+	syntax [anything] [using/] [, Tstat Pval ci Level(real $S_level) noSE CMDline autoid covar(string) detail(name min=1) double ADDLABel(string asis) addvar(string) table(string) coefmat(string) varmat(string) rtable df(numlist min=1 max=1 >0 missingokay) append replace saveold(numlist integer min=1 max=1 >=11)]
 				
 	* Hold onto using filename in case it gets reset by further syntax commands
 	local hold_using `"`using'"'
@@ -123,12 +124,39 @@ program define regsave, rclass
 	* mi estimate has a special default, if post suboption is not specified
 	if `"`e(cmd)'"'=="mi estimate" & "`coefmat'"=="" local coefmat "e(b_mi)"
 	if `"`e(cmd)'"'=="mi estimate" & "`varmat'"=="" local varmat "e(V_mi)"
+		
+	* If rtable option specified, then use that as the default for coef, var, t, p, and ci.
+	if "`rtable'"!="" {
 	
+		if "`coefmat'`varmat'`covar'"!="" {
+			di as error "Cannot specify the rtable option together with coefmat, varmat, or covar options"
+			exit 198			
+		}
+		
+		tempname rtablemat rtable_coefmat rtable_semat rtable_tmat rtable_pvalmat rtable_llmat rtable_ulmat
+		confirm matrix r(table)
+		matrix `rtablemat' = r(table)
+		
+		matrix `rtable_coefmat' = `rtablemat'["b",.]
+		matrix `rtable_semat' = `rtablemat'["se",.]
+		
+		* some commands report t-stats, others report z-stats
+		cap    matrix `rtable_tmat' = `rtablemat'["t",.]
+		if _rc matrix `rtable_tmat' = `rtablemat'["z",.]
+		
+		if "`pval'"!="" matrix `rtable_pvalmat' = `rtablemat'["pvalue",.]
+		if "`ci'"!="" matrix `rtable_llmat' = `rtablemat'["ll",.]
+		if "`ci'"!="" matrix `rtable_ulmat' = `rtablemat'["ul",.]
+		
+		local coefmat "`rtable_coefmat'"
+		local varmat "`rtable_semat'"
+	}
 	
-	* coefmat, varmat, and df defaults are e(b), e(V), and e(df_r)
+	* Else, the coefmat, varmat, and df defaults are e(b), e(V), and e(df_r)
 	if "`coefmat'"=="" local coefmat "e(b)"
 	if "`varmat'"=="" local varmat "e(V)"
 	if "`df'"=="" local df = e(df_r)
+	
 	confirm matrix `coefmat'
 	confirm matrix `varmat'
 	
@@ -147,7 +175,7 @@ program define regsave, rclass
 	
 	* sigfig not allowed with format option
 	if "`sigfig'"!="" & "`format'"!=""  {
-		di as error "Cannot specify both the sigfig and format options."
+		di as error "Cannot specify both the sigfig and format options"
 		exit 198					
 	}	
 	
@@ -169,12 +197,10 @@ program define regsave, rclass
 	local more_setting `c(more)'
 	set more off
 	
-	
 	**********************************
 	* Store results			  		 *
 	**********************************
 
-	
 	* Preserve if user is saving to a file
 	if "`using'" != "" preserve
 
@@ -182,17 +208,17 @@ program define regsave, rclass
 	tempname coef covars vars temp
 	matrix `coef' = `coefmat'
 	
-	* Grab standard errors, account for cases where (1) no covars available and (2) se's are reported instead of vars
+	* Grab standard errors/variances and covars
 	matrix `vars' = `varmat'
 	if rowsof(`vars')==1 {		
 		if "`covar'"!="" {
-			di as error `"covar() is not a valid option because `varmat' does not contain covariances."'
+			di as error `"covar() is not a valid option because `varmat' does not contain covariances"'
 			exit 198		
 		}
 	}
 	else {
 		matrix `covars' = `varmat'
-		matrix `vars' = vecdiag(`covars')
+		if "`rtable'"=="" matrix `vars' = vecdiag(`covars')
 	}
 	
 	* Grab varnames. Check for the case where we have equation names (happens with, for example, the heckman command)
@@ -234,8 +260,8 @@ program define regsave, rclass
 	cap svmat `double' `vars'
 	ren `vars'1 stderr
 	ren `coef'1 coef
-	if strpos("`varmat'","se")==0 qui replace stderr = sqrt(stderr) // I assume here that se matrices have "se" in their name
-	
+	if strpos("`varmat'","se")==0 & "`rtable'"=="" qui replace stderr = sqrt(stderr) // Assumes that r(table) reports std errors, and that a user-specified varmat with "se" in its name reports std errors
+
 	* Gen varname variable
 	qui gen var = ""
 	local row = 1
@@ -257,9 +283,68 @@ program define regsave, rclass
 		qui ren `covar_nm'1 covar_`covar_nm'
 
 	}
+	
+	***
+	* tstat, p-vals, and ci if specified
+	***
+	* Method 1. Obtain from r(table), if specified by user
+	if "`rtable'"!="" {
+
+		if "`tstat'"!="" {
+			matrix `rtable_tmat' = `rtable_tmat''
+			svmat `double' `rtable_tmat'
+			ren `rtable_tmat'1 tstat
+		}
+		
+		if "`pval'"!="" {
+			matrix `rtable_pvalmat' = `rtable_pvalmat''
+			svmat `double' `rtable_pvalmat'
+			ren `rtable_pvalmat'1 pval		
+		}
+
+		if "`ci'"!="" {
+			matrix `rtable_llmat' = `rtable_llmat''
+			svmat `double' `rtable_llmat'
+			ren `rtable_llmat'1 ci_lower		
+			
+			matrix `rtable_ulmat' = `rtable_ulmat''
+			svmat `double' `rtable_ulmat'
+			ren `rtable_ulmat'1 ci_upper				
+		}	
+	}
+
+	* Method 2. Else obtain from e(b) and e(V)
+	else {
+		qui gen `double' tstat = coef/stderr
+		if `level'<0 local cilevel = `c(level)'
+		else local cilevel = `level'
+
+		if "`pval'`ci'"!="" {
+			if "`df'"=="." {
+				qui gen `double' pval = 2*(1-normprob(abs(tstat)))
+				qui gen `double' t_ci = invnorm(1-(1-`cilevel'/100)/2)
+			}
+			else {
+				qui gen `double' pval = tprob(`df', abs(tstat))
+				qui gen `double' t_ci = abs(invttail(`df', (1-`cilevel' /100)/2))
+			}
+		}
+		if "`ci'"!="" {
+			qui gen `double' ci_lower = coef - t_ci*stderr
+			qui gen `double' ci_upper = coef + t_ci*stderr
+		}
+		cap drop t_ci
+	}
+	
+	
+	if "`pval'"=="" cap drop pval
+	if "`tstat'"=="" cap drop tstat
+	if "`se'"!="" drop stderr
+	else local stderr stderr	
 
 	* Addvar option
-	qui gen byte _keep=0
+	tempname _keep
+	qui gen byte `_keep'=0
 	if `"`addvar'"'!="" {
 		
 		tokenize `"`addvar'"', parse(",")
@@ -290,46 +375,21 @@ program define regsave, rclass
 			macro shift
 			
 			* Make sure observation is not dropped
-			qui replace _keep = 1 in `row_num'
+			qui replace `_keep' = 1 in `row_num'
 		}
 	}
 
 	* Keep only specified variables
 	if "`orig_namelist'"!="" {
 		foreach var of local orig_namelist {
-			if "`eqnames'"=="" qui replace _keep=1 if var=="`var'"
-			else qui replace _keep=1 if strpos(var,"`var'")!=0 // eqnames are stored as eqname:var
+			if "`eqnames'"=="" qui replace `_keep'=1 if var=="`var'"
+			else qui replace `_keep'=1 if strpos(var,"`var'")!=0 // eqnames are stored as eqname:var
 		}
-		qui keep if _keep==1
+		qui keep if `_keep'==1
 	}
-	qui drop _keep
+	qui drop `_keep'
 	
-	* tstat, p-vals, and ci if specified
-	qui gen `double' tstat = coef/stderr
-	if `level'<0 local cilevel = `c(level)'
-	else local cilevel = `level'
-
-	if "`pval'`ci'"!="" {
-		if "`df'"=="." {
-			qui gen `double' pval = 2*(1-normprob(abs(tstat)))
-			qui gen `double' t_ci = invnorm(1-(1-`cilevel'/100)/2)
-		}
-		else {
-			qui gen `double' pval = tprob(`df', abs(tstat))
-			qui gen `double' t_ci = abs(invttail(`df', (1-`cilevel' /100)/2))
-		}
-	}
-	if "`ci'"!="" {
-		qui gen `double' ci_lower = coef - t_ci*stderr
-		qui gen `double' ci_upper = coef + t_ci*stderr
-	}
-	cap drop t_ci
-	if "`pval'"=="" cap drop pval
-	if "`tstat'"=="" drop tstat
-	if "`se'"!="" drop stderr
-	else local stderr stderr	
-
-
+	
 	**********************************
 	* Fill in remaining data		 *
 	**********************************
