@@ -1,12 +1,14 @@
 # REGSAVE: extract and store regression results
 
-- Current version: `1.4.6 30jan2019`
+- Current version: `1.4.8 25oct2019`
 - Jump to: [`updates`](#recent-updates) [`install`](#install) [`description`](#description) [`author`](#author)
 
 -----------
 
 ## Updates:
-
+* **October 25, 2019**
+  - Added `rtable` option
+  
 * **January 30, 2019**
   - N now stored as double/long for large datasets
 
