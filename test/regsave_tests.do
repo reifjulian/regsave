@@ -346,6 +346,27 @@ cf _all using "compare/sigfig2.dta"
 regsave mpg trunk, table(OLS, sigfig(4) asterisk() parentheses(stderr) bracket(pval)) pval
 cf _all using "compare/sigfig3.dta"
 
+* sigfig trailing zero check - trunk_coef should be 259.0, not 259. 
+sysuse auto.dta, clear
+replace price = price*3.201
+regress price mpg trunk headroom length
+regsave mpg trunk, table(OLS, sigfig(4) asterisk())
+cf _all using "compare/sigfig4.dta"
+
+* Test whether missing standard errors are stored correctly with sigfig
+sysuse auto.dta, clear
+keep in 1/2
+reg price mpg
+regsave, rtable table(OLS, sigfig(4) asterisk())
+cf _all using "compare/sigfig5.dta"
+
+* leading zero following the decimal point check (mpg pval should be 0.00010 , not 0.0001)
+sysuse auto.dta, clear
+replace mpg = mpg+gear_ratio*.2
+regress price mpg trunk headroom foreign
+regsave, table(OLS, sigfig(2) asterisk()) p
+cf _all using "compare/sigfig6.dta"
+
 cap regsave mpg trunk, table(OLS, sigfig(4) format(%12.0fc) asterisk() parentheses(stderr) bracket(pval)) pval
 assert _rc==198
 
