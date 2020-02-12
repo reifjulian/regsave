@@ -6,6 +6,9 @@
 -----------
 
 ## Updates:
+* **January 9, 2020**
+  - Fixed `sigfig()` bug
+  
 * **October 25, 2019**
   - Added `rtable` option
   
