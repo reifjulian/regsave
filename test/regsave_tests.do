@@ -376,6 +376,16 @@ assert _rc==125
 cap regsave mpg trunk, table(OLS, sigfig(2 2) asterisk())
 assert _rc==123
 
+* regsave_tbl and sigfig formatting
+program drop _all
+tempfile t
+sysuse auto, clear
+reg price mpg, robust
+regsave using "`t'", t p autoid replace
+use "`t'", clear
+regsave_tbl using "`t'", name(test) asterisk(10 5 1) parentheses(stderr) sigfig(3) replace
+use "`t'", clear
+cf _all using "compare/sigfig7.dta"
 
 * Confirm that N's larger than float size (eg N=16777217) are stored properly as double/long
 set seed 10
@@ -385,7 +395,6 @@ gen price = uniform()
 _regress price
 regsave
 cf N using "compare/big_N.dta"
-
 
 *********
 * regsave_tbl
