@@ -34,6 +34,8 @@ net install regsave, from("https://raw.githubusercontent.com/reifjulian/regsave/
 This tutorial assumes you have already [installed](#installation) the `regsave` Stata package. Here is code that opens up Stata's built in dataset and regresses automobile price on miles per gallaon and/or weight. We will do this for two different types of automobiles: domestic cars and foreign cars. We will save the results of each regression to a tempfile, and then display the contents of that file at the end.
 
 ```stata
+* Example #1
+
 tempfile results
 sysuse auto, clear
 
@@ -59,6 +61,8 @@ We could also have saved t statistics or confidence intervals by specifying the 
 The `table()` option saves results in a "wide" format that is more appropriate for creating tables. The following code runs the same regressions as above, but saves the output in table format.
 
 ```stata
+* Example #2
+
 tempfile results_tbl
 sysuse auto, clear
 
@@ -78,7 +82,35 @@ use "`results_tbl'", clear
 list
 ```
 
-You can also convert a dataset saved by `regsave` directly into a table by using the helper command `regsave_tbl`.
+This resulting output looks like this:
+
+![Stata regsave table output](images/stata_regsave_tbl_list.png)
+
+It is often convenient to first save a set of regressions to a file using `regsave` and then later convert those results to a table using the `regsave_tbl` helper command:
+
+```stata
+* Example #3
+
+* Load the saved results from Example #1 above
+use "`results'", clear
+tempfile my_table
+
+* Convert those results to table format
+local run_no = 1
+local replace replace
+foreach orig in "Domestic" "Foreign" {
+	foreach rhs in "mpg" "mpg weight" {
+		
+		regsave_tbl using "`my_table'" if origin=="`orig'" & rhs=="`rhs'", name(col`run_no') asterisk(5 1) parentheses(stderr) `replace'
+		local run_no = `run_no'+1
+		local replace append
+	}
+}
+
+* The resulting table is identical to what was produced in Example #2 above
+use "`my_table'", clear
+list
+```
 
 ## Update History
   
