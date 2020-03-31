@@ -3,7 +3,7 @@ cscript regsave adofile regsave
 clear
 adopath ++"../src"
 set more off
-tempfile t
+tempfile t results
 version 11
 program drop _all
 
@@ -73,6 +73,22 @@ program drop _all
  replace var = "R-squared" if var == "r2"
  rename var Variable
  cf _all using "compare/examp7.dta"
+ 
+* regsave table example + autoid option (from Github)
+sysuse auto, clear
+local num = 1
+local replace replace
+foreach rhs in "mpg" "mpg weight" {
+	foreach type in "Domestic" "Foreign" {
+	
+		reg price `rhs' if foreign=="`type'":origin, robust
+		regsave using "`results'", pval autoid `replace' addlabel(rhs,"`rhs'",origin,"`type'") table(col_`num', asterisk(5 1) parentheses(stderr))
+		local replace append
+		local num = `num'+1
+	}
+}
+use "`results'", clear
+cf _all using "compare/regsave_tbl_autoid.dta"
 
 * Test time series notation for one lag. Note there is a bug: you cannot specify F(1 3).ma with -regsave-
 sysuse "tsline1.dta", clear
