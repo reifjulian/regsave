@@ -31,11 +31,10 @@ net install regsave, from("https://raw.githubusercontent.com/reifjulian/regsave/
 
 ## Tutorial
 
-This tutorial assumes you have already [installed](#installation) the `regsave` Stata package. Here is code that opens up Stata's built in dataset and regresses automobile price on miles per gallaon and/or weight. We will do this for two different types of automobiles: domestic cars and foreign cars. We will save the results of each regression to a tempfile, and then display the contents of that file at the end.
+This tutorial assumes you have already [installed](#installation) the `regsave` Stata package. The example code below opens one of Stata's built-in datasets and then regresses automobile price on miles per gallon and/or weight. The code estimates these regressions for two different types of automobiles: domestic cars and foreign cars. The code uses `regsave` to save the results of each regression to a tempfile and then displays the contents of that file.
 
 ```stata
 * Example #1
-
 tempfile results
 sysuse auto, clear
 
@@ -56,13 +55,12 @@ list
 The contents of the dataset, as displayed by `list`, look like this:
 ![Stata regsave output](images/stata_regsave_list.png)
 
-We could also have saved t statistics or confidence intervals by specifying the appropriate options. (Type `help regsave` at the Stata prompt to see the full set of options.)
+We could also have saved t-statistics or confidence intervals by specifying the appropriate options. (Type `help regsave` at the Stata prompt to see the full set of options.)
 
 The `table()` option saves results in a "wide" format that is more appropriate for creating tables. The following code runs the same regressions as above, but saves the output in table format.
 
 ```stata
 * Example #2
-
 tempfile results_tbl
 sysuse auto, clear
 
@@ -111,6 +109,8 @@ foreach orig in "Domestic" "Foreign" {
 use "`my_table'", clear
 list
 ```
+
+See [texsave](https://github.com/reifjulian/texsave) to learn how to save this table in LaTeX format.
 
 ## Update History
   
