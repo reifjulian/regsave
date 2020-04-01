@@ -31,7 +31,12 @@ net install regsave, from("https://raw.githubusercontent.com/reifjulian/regsave/
 
 ## Tutorial
 
-This tutorial assumes you have already [installed](#installation) the `regsave` Stata package. The example code below opens one of Stata's built-in datasets and then regresses automobile price on miles per gallon and/or weight. The code estimates these regressions for two different types of automobiles: domestic cars and foreign cars. The code uses `regsave` to save the results of each regression to a tempfile and then displays the contents of that file.
+First, make sure you have the most recent version of `regsave` installed on your computer:
+```stata
+net install regsave, from("https://raw.githubusercontent.com/reifjulian/regsave/master") replace
+```
+
+The example code below opens one of Stata's built-in datasets and then regresses automobile price on miles per gallon and/or weight. The code estimates these regressions for two different types of automobiles: domestic cars and foreign cars. The code uses `regsave` to save the results of each regression to a tempfile and then displays the contents of that file.
 
 ```stata
 * Example #1
