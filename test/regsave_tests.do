@@ -7,6 +7,7 @@ tempfile t results
 version 11
 program drop _all
 
+
 * 1. Store regression results in the active dataset:
 
  sysuse auto.dta, clear
@@ -411,6 +412,12 @@ gen price = uniform()
 _regress price
 regsave
 cf N using "compare/big_N.dta"
+
+* Confirm that N's incorrectly reported as non-integers are stored as integer
+ use "compare/ivregress.dta", clear
+ ivregress 2sls y (rhs = treat) [aw=1], robust
+ regsave, table(tab,format(%5.3fc) parentheses(stderr))
+ assert tab == "4,834" if var=="N"
 
 *********
 * regsave_tbl
