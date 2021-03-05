@@ -1,6 +1,6 @@
 # REGSAVE: extract and store regression results
 
-- Current regsave version: `1.4.8 25oct2019`
+- Current regsave version: `1.4.9 4mar2021`
 - Current regsave_tbl version: `1.1.8 30mar2020`
 - Jump to:  [`overview`](#overview) [`installation`](#installation) [`tutorial`](#tutorial) [`updates`](#update-history) [`author`](#author)
 
