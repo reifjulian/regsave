@@ -1,4 +1,5 @@
-*! regsave 1.4.9 4mar2021 by Julian Reif
+*! regsave 1.5 3apr2021 by Julian Reif
+* 1.5  : added addstat() option
 * 1.4.9: fixed minor bug when N was stored as non-integer
 * 1.4.8: added rtable option.
 * 1.4.7: fixed bug that caused large scalars outside the normal integer range to be stored as missing, when using the detail() option.
@@ -35,7 +36,7 @@
 
 program define regsave, rclass
 	version 8.2
-	syntax [anything] [using/] [, Tstat Pval ci Level(real $S_level) noSE CMDline autoid covar(string) detail(name min=1) double ADDLABel(string asis) addvar(string) table(string) coefmat(string) varmat(string) rtable df(numlist min=1 max=1 >0 missingokay) append replace saveold(numlist integer min=1 max=1 >=11)]
+	syntax [anything] [using/] [, Tstat Pval ci Level(real $S_level) noSE CMDline autoid covar(string) detail(name min=1) double ADDLABel(string asis) addstat(string) addvar(string) table(string) coefmat(string) varmat(string) rtable df(numlist min=1 max=1 >0 missingokay) append replace saveold(numlist integer min=1 max=1 >=11)]
 				
 	* Hold onto using filename in case it gets reset by further syntax commands
 	local hold_using `"`using'"'
@@ -343,7 +344,7 @@ program define regsave, rclass
 	if "`se'"!="" drop stderr
 	else local stderr stderr	
 
-	* Addvar option
+	* addvar() option
 	tempname _keep
 	qui gen byte `_keep'=0
 	if `"`addvar'"'!="" {
@@ -395,7 +396,42 @@ program define regsave, rclass
 	* Fill in remaining data		 *
 	**********************************
 
-
+	* addstat() option
+	* to do -- disable possibility of converting this to regsave_tbl? alternatively needs to be permitted somehow
+	if `"`addstat'"'!="" {
+		
+		tempname addstat_mat
+		
+		tokenize `"`addstat'"', parse(",")
+		while "`1'" != "" {
+		
+			if "`1'"=="," {
+				di as error "Invalid syntax for addvar()"
+				exit 198
+			}
+			
+			* Varname
+			qui cap gen var = "`1'"
+			if "`1'"!="," macro shift
+			if "`1'"=="," macro shift
+			
+			* Obtain the matrix
+			matrix `addstat_mat' = `1'
+			if "`1'"!="," macro shift
+			if "`1'"=="," macro shift
+			
+			* Ensure matrix is a column vector, and then save to dataset
+			if rowsof(`addstat_mat')>1 & colsof(`addstat_mat')>1 {
+				di as error "Matrix `1' is not a vector"
+				exit 198
+			}
+			if colsof(`addstat_mat')>1 {
+				matrix `addstat_mat' = `1''
+			}
+			svmat `double' `addstat_mat'
+		}
+	}
+	
 	* N, R^2, and regression command. Always store N as a double, to avoid rounding issues with big data.
 	* Note: sometimes commands like ivregress incorrectly report N as a non-integer, and it get stored as such when in double format.
 	qui if e(N)!=. {
