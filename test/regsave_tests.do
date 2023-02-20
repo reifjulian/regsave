@@ -418,6 +418,13 @@ cf N using "compare/big_N.dta"
  ivregress 2sls y (rhs = treat) [aw=1], robust
  regsave, table(tab,format(%5.3fc) parentheses(stderr))
  assert tab == "4,834" if var=="N"
+ 
+* Confirm that a blank option created by addlabel() remains blank when specifying sigfig()
+sysuse auto.dta, clear
+regress price mpg trunk headroom length
+regsave, addlabel(controls,"")
+regsave_tbl, name(reg) parentheses(stderr) sigfig(3)
+assert reg=="" if var=="controls"
 
 *********
 * regsave_tbl
