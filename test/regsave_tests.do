@@ -404,6 +404,14 @@ regsave_tbl using "`t'", name(test) asterisk(10 5 1) parentheses(stderr) sigfig(
 use "`t'", clear
 cf _all using "compare/sigfig7.dta"
 
+* Ensure that "0--1" is not treated as a number by sigfig()
+sysuse auto, clear
+regress price mpg weight
+regsave
+gen age = "0--1"
+regsave_tbl, name(test) asterisk(5 1) sigfig(2)
+assert test=="0--1" if var=="age"
+
 * Confirm that N's larger than float size (eg N=16777217) are stored properly as double/long
 set seed 10
 clear
