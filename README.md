@@ -1,7 +1,7 @@
 # REGSAVE: extract and store regression results
 
 - Current regsave version: `1.4.9 4mar2021`
-- Current regsave_tbl version: `1.1.8 30mar2020`
+- Current regsave_tbl version: `1.1.9 20feb2023`
 - Jump to:  [`overview`](#overview) [`installation`](#installation) [`tutorial`](#tutorial) [`updates`](#update-history) [`author`](#author)
 
 -----------
@@ -118,7 +118,13 @@ list
 See [texsave](https://github.com/reifjulian/texsave) to learn how to save this table in LaTeX format.
 
 ## Update History
-  
+
+* **February 20, 2023**
+  - Fixed `sigfig()` bug
+
+* **March 4, 2021**
+  - Fixed minor bug related to non-integer N
+
 * **October 25, 2019**
   - Added `rtable` option
   
