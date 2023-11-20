@@ -119,7 +119,7 @@ See [texsave](https://github.com/reifjulian/texsave) to learn how to save this t
 
 ## Update History
 * **March 9, 2023**
-  - Fixed minor sigfig() bug that formatted some non-numbers as numbers
+  - Fixed minor `sigfig()` bug that formatted some non-numbers as numbers
     
 * **October 25, 2019**
   - Added `rtable` option
