@@ -1,4 +1,5 @@
-*! regsave_tbl 1.1.9 20feb2023 by Julian Reif
+*! regsave_tbl 1.2 09mar2023 by Julian Reif
+* 1.2: fixed minor sigfig() bug that formatted some non-numbers as numbers
 * 1.1.9: fixed minor sigfig() bug that formatted blanks as zeros
 * 1.1.8: fixed autoid bug
 * 1.1.7: fixed minor sigfig() bug
@@ -359,14 +360,20 @@ program define regsave_tbl, rclass
 			}
 			
 			gen `orig' = `table'
+			gen     `tmp' = `table'
 			
-			gen     `tmp' = subinstr(`table',".","",1)
-			replace `tmp' = subinstr(`tmp',".","",1)
 			replace `tmp' = subinstr(`tmp',"(","",1)
 			replace `tmp' = subinstr(`tmp',")","",1)
 			replace `tmp' = subinstr(`tmp',"[","",1)
 			replace `tmp' = subinstr(`tmp',"]","",1)
 			replace `tmp' = subinstr(`tmp',"*","",.)
+			
+			* What is left at this point should be a number, else we don't apply sigfig() to it (ie treat as integer)
+			replace `intvar'=1 if real(`tmp')==.
+			
+			* Remove decimals twice (exponential notation)
+			replace `tmp' = subinstr(`tmp',".","",1)
+			replace `tmp' = subinstr(`tmp',".","",1)
 			replace `tmp' = subinstr(`tmp',"-","",.)
 			
 			* Remove leading zero's following the decimal point (they don't count towards sig figs)
