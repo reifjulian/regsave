@@ -121,6 +121,11 @@ See [texsave](https://github.com/reifjulian/texsave) to learn how to save this t
 
 ## Update History
 
+* **January 30, 2026**
+  - Fixed coefficient filtering bug with equation names
+  - Fixed autoid variable name collision bug in `regsave_tbl`
+  - Matched `parentheses()`/`brackets()` max from 4 to 6 in `table()` suboptions
+
 * **March 9, 2023**
   - Fixed minor `sigfig()` bug that formatted some non-numbers as numbers
     
