@@ -433,14 +433,10 @@ program define regsave_tbl, rclass
 		if "`autoid'"!="" {
 
 			unab table_name_vars : *
-			local tbl_vars ""
-			foreach v of local table_name_vars {
-				if "`v'" != "var" local tbl_vars "`tbl_vars' `v'"
-			}
-			local table_name_vars "`tbl_vars'"
-			
+
 			local max_id = 0
 			foreach v of local table_name_vars {
+				if "`v'" == "var" continue
 				qui levelsof `v' if var=="_id", local(tmp_id) clean
 				capture confirm integer number `tmp_id'
 				if _rc==0 {
