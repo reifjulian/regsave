@@ -1,4 +1,5 @@
-*! regsave 1.4.9 4mar2021 by Julian Reif
+*! regsave 1.4.10 30jan2026 by Julian Reif
+* 1.4.10: fixed coefficient filtering bug with equation names. Fixed df() to allow 0. Matched parentheses/brackets max to regsave_tbl. Removed dead code.
 * 1.4.9: fixed minor bug when N was stored as non-integer
 * 1.4.8: added rtable option.
 * 1.4.7: fixed bug that caused large scalars outside the normal integer range to be stored as missing, when using the detail() option.
@@ -35,7 +36,7 @@
 
 program define regsave, rclass
 	version 8.2
-	syntax [anything] [using/] [, Tstat Pval ci Level(real $S_level) noSE CMDline autoid covar(string) detail(name min=1) double ADDLABel(string asis) addvar(string) table(string) coefmat(string) varmat(string) rtable df(numlist min=1 max=1 >0 missingokay) append replace saveold(numlist integer min=1 max=1 >=11)]
+	syntax [anything] [using/] [, Tstat Pval ci Level(real $S_level) noSE CMDline autoid covar(string) detail(name min=1) double ADDLABel(string asis) addvar(string) table(string) coefmat(string) varmat(string) rtable df(numlist min=1 max=1 >=0 missingokay) append replace saveold(numlist integer min=1 max=1 >=11)]
 				
 	* Hold onto using filename in case it gets reset by further syntax commands
 	local hold_using `"`using'"'
@@ -77,7 +78,7 @@ program define regsave, rclass
 						
 		local 0 `"`table'"'
 		local tbl_command `"`0'"'
-		syntax namelist(max=1) [, order(string) format(string) sigfig(numlist integer min=1 max=1 >=1 <=16) PARENtheses(namelist max=4) BRACKets(namelist max=4) *]
+		syntax namelist(max=1) [, order(string) format(string) sigfig(numlist integer min=1 max=1 >=1 <=16) PARENtheses(namelist max=6) BRACKets(namelist max=6) *]
 		local table `"`namelist'"'
 		
 		local 0 `", `options'"'
@@ -317,8 +318,7 @@ program define regsave, rclass
 	* Method 2. Else obtain from e(b) and e(V)
 	else {
 		qui gen `double' tstat = coef/stderr
-		if `level'<0 local cilevel = `c(level)'
-		else local cilevel = `level'
+		local cilevel = `level'
 
 		if "`pval'`ci'"!="" {
 			if "`df'"=="." {
@@ -384,7 +384,7 @@ program define regsave, rclass
 	if "`orig_namelist'"!="" {
 		foreach var of local orig_namelist {
 			if "`eqnames'"=="" qui replace `_keep'=1 if var=="`var'"
-			else qui replace `_keep'=1 if strpos(var,"`var'")!=0 // eqnames are stored as eqname:var
+			else qui replace `_keep'=1 if var=="`var'" | substr(var, strpos(var,":")+1, .) == "`var'" // eqnames are stored as eqname:var
 		}
 		qui keep if `_keep'==1
 	}

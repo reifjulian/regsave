@@ -1,4 +1,5 @@
-*! regsave_tbl 1.2 09mar2023 by Julian Reif
+*! regsave_tbl 1.2.1 30jan2026 by Julian Reif
+* 1.2.1: fixed autoid variable name collision bug
 * 1.2: fixed minor sigfig() bug that formatted some non-numbers as numbers
 * 1.1.9: fixed minor sigfig() bug that formatted blanks as zeros
 * 1.1.8: fixed autoid bug
@@ -431,7 +432,11 @@ program define regsave_tbl, rclass
 		if "`autoid'"!="" {
 
 			unab table_name_vars : *
-			local table_name_vars : subinstr local table_name_vars "var" ""
+			local tbl_vars ""
+			foreach v of local table_name_vars {
+				if "`v'" != "var" local tbl_vars "`tbl_vars' `v'"
+			}
+			local table_name_vars "`tbl_vars'"
 			
 			local max_id = 0
 			foreach v of local table_name_vars {
