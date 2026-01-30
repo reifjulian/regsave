@@ -534,5 +534,35 @@ regsave, addvar(mpg_5, `mycoef', `mystderr') rtable
 cf _all using "compare/examp5.dta"
 
 
+***
+* Tests for v1.4.10 / v1.2.1 fixes
+***
+
+* Fix 1: Equation name coefficient filtering should use exact match, not substring
+* Requesting "mpg" should match "price:mpg" but NOT "price:mpg2"
+sysuse auto, clear
+gen selection = trunk > 15
+gen mpg2 = weight
+heckman price mpg mpg2, select(selection = rep78)
+regsave mpg
+assert _N == 1
+assert var == "price:mpg" in 1
+
+* Fix 2: autoid should work when table column names contain "var" substring
+sysuse auto, clear
+regress price mpg
+regsave using "`t'", table(var_result1) autoid replace
+regress price trunk
+regsave using "`t'", table(var_result2) autoid append
+use "`t'", clear
+assert var_result1 == 1 if var=="_id"
+assert var_result2 == 2 if var=="_id"
+
+* Fix 3: parentheses/brackets should accept up to 6 stat names via table() option
+sysuse auto.dta, clear
+regress price mpg trunk
+regsave, tstat pval ci table(test, parentheses(stderr tstat pval ci_lower ci_upper))
+assert _N > 0
+
 ** EOF
 

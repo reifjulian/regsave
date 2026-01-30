@@ -96,7 +96,7 @@ See the notes section below (and also example 7) for more information.
 
 {p 4 8 2}
 {cmd:df(}{it:#}{cmd:)} instructs Stata to calculate p-values and confidence intervals using # as the degrees of freedom instead of what is stored in {cmd:e(df_r)}. 
-{it:#} can be specified as missing ('.') or as any nonnegative real number.
+{it:#} can be specified as missing ('.') or as any real number greater than 0.
 If {it:#} is set to missing, {cmd:regsave} assumes normality.
 
 

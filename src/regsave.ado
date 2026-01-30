@@ -1,5 +1,5 @@
 *! regsave 1.4.10 30jan2026 by Julian Reif
-* 1.4.10: fixed coefficient filtering bug with equation names. Fixed df() to allow 0. Matched parentheses/brackets max to regsave_tbl. Removed dead code.
+* 1.4.10: fixed coefficient filtering bug with equation names. Matched parentheses/brackets max to regsave_tbl. Removed dead code.
 * 1.4.9: fixed minor bug when N was stored as non-integer
 * 1.4.8: added rtable option.
 * 1.4.7: fixed bug that caused large scalars outside the normal integer range to be stored as missing, when using the detail() option.
@@ -36,7 +36,8 @@
 
 program define regsave, rclass
 	version 8.2
-	syntax [anything] [using/] [, Tstat Pval ci Level(real $S_level) noSE CMDline autoid covar(string) detail(name min=1) double ADDLABel(string asis) addvar(string) table(string) coefmat(string) varmat(string) rtable df(numlist min=1 max=1 >=0 missingokay) append replace saveold(numlist integer min=1 max=1 >=11)]
+	* Note: df() bound is >0 here (user-specified) but >=0 in regsave_tbl (receives e(df_r), which can be 0)
+	syntax [anything] [using/] [, Tstat Pval ci Level(real $S_level) noSE CMDline autoid covar(string) detail(name min=1) double ADDLABel(string asis) addvar(string) table(string) coefmat(string) varmat(string) rtable df(numlist min=1 max=1 >0 missingokay) append replace saveold(numlist integer min=1 max=1 >=11)]
 				
 	* Hold onto using filename in case it gets reset by further syntax commands
 	local hold_using `"`using'"'

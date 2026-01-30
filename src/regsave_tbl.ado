@@ -25,6 +25,7 @@
 program define regsave_tbl, rclass
 	version 8.2
 
+	* Note: df() bound is >=0 here (receives e(df_r), which can be 0) but >0 in regsave (user-specified)
 	syntax [varlist] [using/] [if] [in], name(name) [order(string) format(string) sigfig(numlist integer min=1 max=1 >=1 <=16) PARENtheses(namelist max=6) BRACKets(namelist max=6) allnumeric ASTERisk(numlist descending integer min=0 max=3 >=0 <=100) df(numlist min=1 max=1 >=0 missingokay) autoid append replace saveold(numlist integer min=1 max=1 >=11)]
 
 	**********************************
