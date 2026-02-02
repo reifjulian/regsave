@@ -1,8 +1,8 @@
 # REGSAVE: extract and store regression results
 
-- Current regsave version: `1.4.9 4mar2021`
+- Current regsave version: `1.4.10 30jan2026`
 
-- Current regsave_tbl version: `1.2 09mar2023`
+- Current regsave_tbl version: `1.2.1 30jan2026`
 
 - Jump to:  [`overview`](#overview) [`installation`](#installation) [`tutorial`](#tutorial) [`updates`](#update-history) [`author`](#author)
 
@@ -120,6 +120,12 @@ list
 See [texsave](https://github.com/reifjulian/texsave) to learn how to save this table in LaTeX format.
 
 ## Update History
+
+* **January 30, 2026**
+  - Fixed coefficient filtering bug with equation names
+  - Fixed autoid variable name collision bug in `regsave_tbl`
+  - Matched `parentheses()`/`brackets()` max from 4 to 6 in `table()` suboptions
+  - `asterisk()` option now accepts decimal significance levels
 
 * **March 9, 2023**
   - Fixed minor `sigfig()` bug that formatted some non-numbers as numbers

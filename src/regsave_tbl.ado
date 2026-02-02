@@ -1,4 +1,5 @@
-*! regsave_tbl 1.2 09mar2023 by Julian Reif
+*! regsave_tbl 1.2.1 30jan2026 by Julian Reif
+* 1.2.1: fixed autoid variable name collision bug
 * 1.2: fixed minor sigfig() bug that formatted some non-numbers as numbers
 * 1.1.9: fixed minor sigfig() bug that formatted blanks as zeros
 * 1.1.8: fixed autoid bug
@@ -24,7 +25,8 @@
 program define regsave_tbl, rclass
 	version 8.2
 
-	syntax [varlist] [using/] [if] [in], name(name) [order(string) format(string) sigfig(numlist integer min=1 max=1 >=1 <=16) PARENtheses(namelist max=6) BRACKets(namelist max=6) allnumeric ASTERisk(numlist descending integer min=0 max=3 >=0 <=100) df(numlist min=1 max=1 >=0 missingokay) autoid append replace saveold(numlist integer min=1 max=1 >=11)]
+	* Note: df() bound is >=0 here (receives e(df_r), which can be 0) but >0 in regsave (user-specified)
+	syntax [varlist] [using/] [if] [in], name(name) [order(string) format(string) sigfig(numlist integer min=1 max=1 >=1 <=16) PARENtheses(namelist max=6) BRACKets(namelist max=6) allnumeric ASTERisk(numlist descending min=0 max=3 >=0 <=100) df(numlist min=1 max=1 >=0 missingokay) autoid append replace saveold(numlist integer min=1 max=1 >=11)]
 
 	**********************************
 	* Error check option selections  *
@@ -431,10 +433,10 @@ program define regsave_tbl, rclass
 		if "`autoid'"!="" {
 
 			unab table_name_vars : *
-			local table_name_vars : subinstr local table_name_vars "var" ""
-			
+
 			local max_id = 0
 			foreach v of local table_name_vars {
+				if "`v'" == "var" continue
 				qui levelsof `v' if var=="_id", local(tmp_id) clean
 				capture confirm integer number `tmp_id'
 				if _rc==0 {
