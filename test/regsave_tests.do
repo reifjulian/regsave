@@ -147,6 +147,12 @@ regress price mpg trunk headroom length
 regsave mpg trunk, table(OLS, order(regvars r2) format(%5.3f) parentheses(pval) asterisk(30 15)) pval
 cf _all using "compare/asterisk.dta"
 
+* Decimal asterisk examples
+sysuse auto.dta, clear
+regress price mpg trunk headroom length
+regsave mpg trunk, table(OLS, order(regvars r2) format(%5.3f) parentheses(pval) asterisk(20 10.5)) pval
+cf _all using "compare/asterisk_decimal.dta"
+
 * ci examples
 sysuse auto.dta, clear
 regress price mpg trunk headroom length, level(80)

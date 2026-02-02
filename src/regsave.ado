@@ -83,7 +83,7 @@ program define regsave, rclass
 		local table `"`namelist'"'
 		
 		local 0 `", `options'"'
-		syntax [, ASTERisk(numlist descending integer min=0 max=3 >=0 <=100)]
+		syntax [, ASTERisk(numlist descending min=0 max=3 >=0 <=100)]
 		
 		* Detect if the asterisk option was specified; set defaults if significance levels were not specified by user
 		local aster_defaults "10 5 1"

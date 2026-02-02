@@ -4,3 +4,4 @@
 *.aux
 *.synctex.gz
 *.log
+.claude/
