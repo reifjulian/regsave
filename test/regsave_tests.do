@@ -598,5 +598,38 @@ assert r(N) == 2
 qui count if model == "OLS"
 assert r(N) == 2
 
+* Fix 6: regsave_tbl analogue of Fix 4 (Case A) - reused table column name, str then num.
+*        Without the fix, Stata's merge would coerce the file's string values to numeric
+*        missing for rows only in the file (e.g., mpg_coef), silently destroying data.
+sysuse auto, clear
+regress price mpg
+regsave using "`t'", addlabel(m, "OLS") table(col) replace
+regress price trunk
+regsave using "`t'", addlabel(m, 2) table(col) append
+use "`t'", clear
+cap confirm string variable col
+assert !_rc
+assert col != "" if var == "mpg_coef"
+assert col != "" if var == "mpg_stderr"
+assert col != "" if var == "trunk_coef"
+assert col != "" if var == "trunk_stderr"
+assert col == "2" if var == "m"
+
+* Fix 7: regsave_tbl analogue of Fix 5 (Case B) - reused table column name, num then str.
+*        Without the fix, numeric values from the file would be coerced to empty strings.
+sysuse auto, clear
+regress price mpg
+regsave using "`t'", addlabel(m, 1) table(col) replace
+regress price trunk
+regsave using "`t'", addlabel(m, "OLS") table(col) append
+use "`t'", clear
+cap confirm string variable col
+assert !_rc
+assert col != "" if var == "mpg_coef"
+assert col != "" if var == "mpg_stderr"
+assert col != "" if var == "trunk_coef"
+assert col != "" if var == "trunk_stderr"
+assert col == "OLS" if var == "m"
+
 ** EOF
 

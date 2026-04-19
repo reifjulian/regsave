@@ -1,4 +1,5 @@
-*! regsave_tbl 1.2.1 30jan2026 by Julian Reif
+*! regsave_tbl 1.2.2 19apr2026 by Julian Reif
+* 1.2.2: fixed type mismatch bug on append that silently destroyed data when the same table column name was reused across calls with different allnumeric settings.
 * 1.2.1: fixed autoid variable name collision bug
 * 1.2: fixed minor sigfig() bug that formatted some non-numbers as numbers
 * 1.1.9: fixed minor sigfig() bug that formatted blanks as zeros
@@ -417,12 +418,66 @@ program define regsave_tbl, rclass
 	* Merge with dataset if specified
 	if "`append'"!= "" {
 
+		* Reconcile type conflicts on shared variables before the merge.
+		* If the same column name is reused across runs with different types, Stata's merge
+		* silently coerces mismatched values to missing, destroying data. Coerce to string.
+		tempfile saved_current
+		qui save `"`saved_current'"', replace
+
+		local file_str_vars ""
+		local file_num_vars ""
+		cap qui use `"`using'"' in 1/1, clear
+		if !_rc {
+			foreach v of varlist _all {
+				cap confirm string variable `v'
+				if !_rc local file_str_vars `file_str_vars' `v'
+				else local file_num_vars `file_num_vars' `v'
+			}
+		}
+		qui use `"`saved_current'"', clear
+
+		local fmt_opt ""
+		if "`format'" != "" local fmt_opt "format(`format')"
+
+		* Case A: var is numeric in current but string in file -> tostring current
+		local vars_num_to_str ""
+		foreach v of local file_str_vars {
+			cap confirm numeric variable `v'
+			if !_rc local vars_num_to_str `vars_num_to_str' `v'
+		}
+		if "`vars_num_to_str'" != "" {
+			qui tostring `vars_num_to_str', replace force `fmt_opt'
+			foreach v of local vars_num_to_str {
+				qui replace `v' = "" if `v' == "."
+			}
+		}
+
+		* Case B: var is string in current but numeric in file -> save a modified tempfile
+		local vars_str_to_num ""
+		foreach v of local file_num_vars {
+			cap confirm string variable `v'
+			if !_rc local vars_str_to_num `vars_str_to_num' `v'
+		}
+		local using_for_merge `"`using'"'
+		if "`vars_str_to_num'" != "" {
+			tempfile using_modified
+			qui save `"`saved_current'"', replace
+			qui use `"`using'"', clear
+			qui tostring `vars_str_to_num', replace force `fmt_opt'
+			foreach v of local vars_str_to_num {
+				qui replace `v' = "" if `v' == "."
+			}
+			qui save `"`using_modified'"'
+			qui use `"`saved_current'"', clear
+			local using_for_merge `"`using_modified'"'
+		}
+
 		* Take care that the sorting is not messed up by the merge (and add extra joinby option for Version 8 of Stata)
 		tempvar sortid
 		gen `sortid' = _n
-		cap qui merge var using `"`using'"', sort
+		cap qui merge var using `"`using_for_merge'"', sort
 		if _rc !=0 {
-			qui joinby var using `"`using'"', unmatched(both)
+			qui joinby var using `"`using_for_merge'"', unmatched(both)
 		}
 		qui replace `sortid' = -1 if _merge==2
 		sort `sortid', stable
