@@ -570,5 +570,33 @@ regress price mpg trunk
 regsave, tstat pval ci table(test, parentheses(stderr tstat pval ci_lower ci_upper))
 assert _N > 0
 
+* Fix 4: addlabel type mismatch on append (Case A) - new=numeric, file=string
+*        The numeric value in the new data should be coerced to string so no values are lost.
+sysuse auto, clear
+regress price mpg
+regsave using "`t'", addlabel(model, "OLS") replace
+regress price trunk
+regsave using "`t'", addlabel(model, 2) append
+use "`t'", clear
+assert !missing(model)
+qui count if model == "OLS"
+assert r(N) == 2
+qui count if model == "2"
+assert r(N) == 2
+
+* Fix 5: addlabel type mismatch on append (Case B) - new=string, file=numeric
+*        The numeric value already on file should be coerced to string so no values are lost.
+sysuse auto, clear
+regress price mpg
+regsave using "`t'", addlabel(model, 1) replace
+regress price trunk
+regsave using "`t'", addlabel(model, "OLS") append
+use "`t'", clear
+assert !missing(model)
+qui count if model == "1"
+assert r(N) == 2
+qui count if model == "OLS"
+assert r(N) == 2
+
 ** EOF
 

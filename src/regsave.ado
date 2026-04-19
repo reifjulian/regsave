@@ -1,4 +1,5 @@
-*! regsave 1.4.10 30jan2026 by Julian Reif
+*! regsave 1.4.11 19apr2026 by Julian Reif
+* 1.4.11: fixed addlabel type mismatch bug that caused values to be lost when appending to a file where the addlabel variable had a different type (string vs numeric).
 * 1.4.10: fixed coefficient filtering bug with equation names. Matched parentheses/brackets max to regsave_tbl. Removed dead code.
 * 1.4.9: fixed minor bug when N was stored as non-integer
 * 1.4.8: added rtable option.
@@ -536,9 +537,75 @@ program define regsave, rclass
 	* Save results if specified (regsave_tbl has already saved results if that code was run, so we need to only take care of non-table situations)
 	cap order var
 	qui compress
+
+	* Fix addlabel type mismatches when appending to an existing file
+	local using_for_append `"`using'"'
+	if "`append'" != "" & `"`addlabel'"' != "" & `"`using'"' != "" {
+		cap confirm file `"`using'"'
+		if !_rc {
+
+			* Parse addlabel option to identify varnames and their type in the new data
+			local al_num_vars ""
+			local al_str_vars ""
+			tokenize `"`addlabel'"', parse(",")
+			local j = 1
+			while "``j''" != "" {
+				if `"``j''"' != "," {
+					cap confirm numeric variable ``j''
+					if !_rc local al_num_vars `al_num_vars' ``j''
+					else local al_str_vars `al_str_vars' ``j''
+				}
+				local j = `j'+2                      // skip varname + its comma
+				if "``j''"!="," local j = `j'+1      // skip value (unless blank, i.e. already on a comma)
+				local j = `j'+1                      // skip the comma that follows
+			}
+
+			* Peek at the existing file to check types of addlabel vars.
+			* Use save/use (not preserve/restore) because we may already be in a preserved state.
+			if "`al_num_vars'`al_str_vars'" != "" {
+				local vars_num_to_str ""
+				local vars_str_to_num ""
+				tempfile saved_current
+				qui save `"`saved_current'"', replace
+				cap qui use `"`using'"' in 1/1, clear
+				if !_rc {
+					foreach v of local al_num_vars {
+						cap confirm string variable `v'
+						if !_rc local vars_num_to_str `vars_num_to_str' `v'
+					}
+					foreach v of local al_str_vars {
+						cap confirm numeric variable `v'
+						if !_rc local vars_str_to_num `vars_str_to_num' `v'
+					}
+				}
+				qui use `"`saved_current'"', clear
+
+				* Case A: new=numeric, file=string -> convert new var to string before append
+				foreach v of local vars_num_to_str {
+					qui tostring `v', replace force
+					qui replace `v' = "" if `v' == "."
+				}
+
+				* Case B: new=string, file=numeric -> save modified tempfile of old data
+				if "`vars_str_to_num'" != "" {
+					tempfile modified_using
+					qui save `"`saved_current'"', replace
+					qui use `"`using'"', clear
+					foreach v of local vars_str_to_num {
+						qui tostring `v', replace force
+						qui replace `v' = "" if `v' == "."
+					}
+					qui save `"`modified_using'"'
+					qui use `"`saved_current'"', clear
+					local using_for_append `"`modified_using'"'
+				}
+			}
+		}
+	}
+
 	if "`using'"!= "" & "`table'"=="" {
 		if "`append'"!= "" {
-				append using "`using'"
+				append using `"`using_for_append'"'
 				local replace replace
 				
 				* Generate autoid identifier
