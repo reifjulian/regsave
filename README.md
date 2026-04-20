@@ -1,8 +1,8 @@
 # REGSAVE: extract and store regression results
 
-- Current regsave version: `1.4.10 30jan2026`
+- Current regsave version: `1.4.11 19apr2026`
 
-- Current regsave_tbl version: `1.2.1 30jan2026`
+- Current regsave_tbl version: `1.2.2 19apr2026`
 
 - Jump to:  [`overview`](#overview) [`installation`](#installation) [`tutorial`](#tutorial) [`updates`](#update-history) [`author`](#author)
 
@@ -120,6 +120,9 @@ list
 See [texsave](https://github.com/reifjulian/texsave) to learn how to save this table in LaTeX format.
 
 ## Update History
+
+* **April 19, 2026**
+  - Fixed addlabel type mismatch bug in `regsave` and `regsave_tbl` that caused values to be lost when appending to a file where the addlabel variable had a different type (string vs numeric) than in the new data
 
 * **January 30, 2026**
   - Fixed coefficient filtering bug with equation names
