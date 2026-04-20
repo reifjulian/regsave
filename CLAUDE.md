@@ -46,3 +46,7 @@ The test log is written to `test/regsave_tests.log`. If all tests pass, the log 
 - Stata version compatibility: minimum Stata 8.2 (set in regsave.ado). The test script uses `version 11`.
 - When updating reference test data, replace the corresponding `.dta` file in `test/compare/`.
 - The `.gitignore` excludes `.log` files, so test logs are not committed.
+
+## Git Commits
+
+Do not add `Co-authored-by` trailers or sign yourself as a coauthor in commit messages.
