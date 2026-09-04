@@ -49,4 +49,6 @@ The test log is written to `test/regsave_tests.log`. If all tests pass, the log 
 
 ## Git Commits
 
+Never create a git commit without explicit user permission — even in auto mode. Always wait for the user to ask before committing.
+
 Do not add `Co-authored-by` trailers or sign yourself as a coauthor in commit messages.
